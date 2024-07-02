@@ -16,29 +16,32 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authFormSchema } from "@/lib/utils";
+import CustomInput from "./CustomInput";
+import { Loader2 } from "lucide-react";
 
 // Define the form schema using Zod
-const formSchema = z.object({
-    email: z.string().email()
-});
 
 const Authform = ({ type }: { type: string }) => {
-  // Initialize the form with the schema
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+
+  const [user, setUser] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof authFormSchema>>({
+    resolver: zodResolver(authFormSchema),
     defaultValues: {
       email: "",
     },
   });
 
   // Handle form submission
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values
+  function onSubmit(values: z.infer<typeof authFormSchema>) {
+    setLoading(true)
     console.log(values);
+    setLoading(false)
   }
 
-  // State to manage user
-  const [user, setUser] = useState("");
+ 
 
   return (
     <section className="auth-form">
@@ -66,28 +69,35 @@ const Authform = ({ type }: { type: string }) => {
         <>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                 <div className="form-item">
-                    <FormLabel className="form-label">
-                        Email
-                    </FormLabel>
-                    <div className="flex w-full flex-col">
-                        <FormControl>
-                            <Input
-                            placeholder="Enter your email" className="input-class" {...field}
-                            />
-                        </FormControl>
-                        <FormMessage className=" mt-2 form-message"/>
-                    </div>
-                 </div>
+                {type === 'sign-up' && (
+                    <>
+                <CustomInput control={form.control} name="firstName" placeholder="ex: John " label="First Name"/>
+                <CustomInput control={form.control} name="lastName" placeholder="ex: Doe" label="Last Name"/>
+                <CustomInput control={form.control} name="address" placeholder="Enter your specific address" label="Address"/>
+                <CustomInput control={form.control} name="state" placeholder="ex: NY" label="State"/>
+                <CustomInput control={form.control} name="postalCode" placeholder="ex: 11011" label="Postal Code"/>
+                <CustomInput control={form.control} name="dob" placeholder="yyyy-mm-dd" label="Date of Birth"/>
+                <CustomInput control={form.control} name="ssn" placeholder="ex: 1234" label="SSN"/>
+                    
+                    </>
                 )}
-              />
-              <Button type="submit">Submit</Button>
+                <CustomInput control={form.control} name="email" placeholder="johndoe@gmail.com" label="Email"/>
+                <CustomInput control={form.control} name="password" placeholder="Enter Password" label="Password"/>
+              <div className="flex flex-col gap-4">
+              <Button type="submit" className="form-btn" disabled={loading}>
+                {loading?(<><Loader2 size={20} className="animate-spin"/> &nbsp; Loading...</>):(type === "sign-in"? "Sign In":"Sign Up")}
+              </Button>
+              </div>
             </form>
           </Form>
+          <footer className="flex justify-center gap-1">
+            <p className="text-14 font-normal text-gray-600">
+                {type === 'sign-in' ? "Don't have any account?":"Already have an account "}
+            </p>
+            <Link href={type === 'sign-in'?'/sign-up':'/sign-in'} className="form-link">
+             {type === 'sign-in' ? 'Sign up' : 'Sign in'}
+            </Link>
+          </footer>
         </>
       )}
     </section>
