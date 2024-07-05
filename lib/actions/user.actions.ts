@@ -4,6 +4,8 @@ import { ID } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../server/appwrite";
 import { cookies } from "next/headers";
 import { parseStringify } from "../utils";
+import { CountryCode, Products } from "plaid";
+import { plaidClient } from "../plaid";
 
 export const signIn = async ({email,password}:signInProps) => {
   try {
@@ -40,8 +42,11 @@ export const signUp = async (userData: SignUpParams) => {
 
 export async function getLoggedInUser() {
   try {
+    console.log("1")
     const { account } = await createSessionClient();
+    console.log("2")
     const user = await account.get();
+    console.log("3")
     return parseStringify(user);
   } catch (error) {
     console.log("Error in getting login user", error);
@@ -56,5 +61,24 @@ export async function logoutAccount() {
     await account.deleteSession('current')
   } catch (error) {
     return null;
+  }
+}
+export const createLinkToken = async (user: User) => {
+  try {
+    const tokenParams = {
+      user: {
+        client_user_id: user.$id
+      },
+      client_name: `${user.firstName} ${user.lastName}`,
+      products: ['auth'] as Products[],
+      language: 'en',
+      country_codes: ['US'] as CountryCode[],
+    }
+
+    const response = await plaidClient.linkTokenCreate(tokenParams);
+
+    return parseStringify({ linkToken: response.data.link_token })
+  } catch (error) {
+    console.log(error);
   }
 }
